@@ -15,6 +15,7 @@
  */
 package com.example.android.quakereport;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ArrayAdapter;
@@ -26,23 +27,25 @@ public class
 EarthquakeActivity extends AppCompatActivity {
 
     public static final String LOG_TAG = EarthquakeActivity.class.getName();
-
+    public static final String URL_usgs = "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&eventtype=earthquake&orderby=time&minmag=6";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.earthquake_activity);
+        new EarthquakeAsync().execute(URL_usgs);
+    }
 
-        // Create a fake list of earthquake locations.
-        ArrayList<CustomAdapter> earthquakes = QueryUtils.extractEarthquakes();
+    private class EarthquakeAsync extends AsyncTask<String,Void,ArrayList<CustomAdapter>>{
+        @Override
+        protected ArrayList<CustomAdapter> doInBackground(String... strings) {
+            return QueryUtils.fetchEarthquakeData(strings[0]);
+        }
 
-        // Find a reference to the {@link ListView} in the layout
-        ListView earthquakeListView = (ListView) findViewById(R.id.list);
-
-        // Create a new {@link ArrayAdapter} of earthquakes
-        CustomAdapterImplement adapter = new CustomAdapterImplement(this,earthquakes);
-
-        // Set the adapter on the {@link ListView}
-        // so the list can be populated in the user interface
-        earthquakeListView.setAdapter(adapter);
+        @Override
+        protected void onPostExecute(ArrayList<CustomAdapter> customAdapters) {
+            ListView earthquakeListView = (ListView) findViewById(R.id.list);
+            CustomAdapterImplement adapter = new CustomAdapterImplement(EarthquakeActivity.this,customAdapters);
+            earthquakeListView.setAdapter(adapter);
+        }
     }
 }
